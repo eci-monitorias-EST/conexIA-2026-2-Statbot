@@ -21,6 +21,7 @@ TOOL_LABELS = {
     "resumen": "🧮 Resumen descriptivo",
     "t_test": "🧮 Prueba t de una muestra",
     "chi2": "🧮 Prueba chi-cuadrado",
+    "definicion": "📖 Definición",
     None: "📚 Contexto teórico",
 }
 

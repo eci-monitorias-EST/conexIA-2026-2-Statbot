@@ -12,7 +12,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from formatting import format_chi2, format_resumen, format_t_test
-from rag import build_context_text
+from rag import build_context_text, buscar_definicion
 from tools import (
     chi_cuadrado_bondad,
     extraer_datos_y_mu0,
@@ -83,7 +83,12 @@ def answer_node(state: StatsState) -> StatsState:
     if tool_type is not None:
         answer = texto_formateado
     else:
-        answer = ctx
+        definicion = buscar_definicion(q)
+        if definicion is not None:
+            tool_type = "definicion"
+            answer = definicion
+        else:
+            answer = ctx
 
     return {
         "question": q,
