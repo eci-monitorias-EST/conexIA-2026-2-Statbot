@@ -86,7 +86,7 @@ with col_title:
         """
         <div class="statbot-banner">
             <h1>STATBOT · Asistente de Estadística</h1>
-            <p>RAG + herramientas de cálculo estadístico sobre un flujo LangGraph</p>
+            <p>Resuelve dudas de teoría estadística, calcula pruebas estadísticas y consulta datos del Mundial 2026</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -95,12 +95,14 @@ with col_title:
 with st.sidebar:
     st.header("Acerca de STATBOT")
     st.write(
-        "Asistente construido para el evento universitario, con dos formas de "
-        "interactuar:"
+        "STATBOT te ayuda a resolver dudas de estadística y a explorar datos, "
+        "de tres formas:"
     )
     st.markdown(
         "- **Chat**: preguntas en lenguaje natural (teoría o cálculo).\n"
-        "- **Pruebas guiadas**: formularios explícitos por tipo de prueba."
+        "- **Pruebas guiadas**: formularios explícitos por tipo de prueba.\n"
+        "- **LLM · Mundial 2026**: preguntas en lenguaje natural sobre los "
+        "partidos y jugadores del Mundial 2026."
     )
     st.divider()
     st.caption(
