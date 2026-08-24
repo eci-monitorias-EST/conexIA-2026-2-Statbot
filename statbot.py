@@ -236,11 +236,9 @@ with tab_guiado:
 
 with tab_llm:
     st.caption(
-        "Preguntas en lenguaje natural sobre los partidos del Mundial 2026 "
-        "(worldcup-full.json). Un LLM (Claude) decide qué consulta hacer sobre el "
-        "dataset real para responder, en vez de inventar cifras. Ejemplos: "
-        "\"¿quién anotó más goles?\", \"partidos de Argentina\", \"resumen del "
-        "torneo\", \"jugadores con más tarjetas\"."
+        "Pregunta en lenguaje natural sobre los partidos y jugadores del "
+        "Mundial 2026. Ejemplos: \"¿quién anotó más goles?\", \"partidos de "
+        "Argentina\", \"resumen del torneo\", \"jugadores con más tarjetas\"."
     )
 
     api_key = st.session_state.llm_api_key or get_default_api_key()
