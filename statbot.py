@@ -107,12 +107,6 @@ with st.sidebar:
         "Tip para el chat: incluye los datos entre corchetes, ej. "
         "`[10, 12, 9, 11, 13, 8]`, y palabras clave como *prueba t* o *chi cuadrado*."
     )
-    st.divider()
-    st.caption(
-        "La pestaña LLM · Mundial 2026 necesita una API key gratuita de Google "
-        "AI Studio. Puedes definirla como variable de entorno `GOOGLE_API_KEY`, en "
-        "`.streamlit/secrets.toml`, o pegarla en esa misma pestaña."
-    )
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
