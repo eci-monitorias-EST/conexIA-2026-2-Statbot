@@ -14,11 +14,13 @@ from typing import Any, Dict, List, Optional, Tuple
 from google import genai
 from google.genai import errors, types
 
-# El modelo gratuito de Gemini a veces devuelve 503 "alta demanda" en horas pico;
-# reintentar un par de veces con una pausa corta evita que eso se vea como un
-# error en plena demostración.
-MAX_REINTENTOS_503 = 3
+# El tier gratuito de Gemini a veces devuelve 503 (modelo saturado) o 429
+# (limite de peticiones por minuto, relevante si varios estudiantes preguntan
+# a la vez con la misma API key); reintentar con una pausa corta evita que eso
+# se vea como un error en plena demostración.
+MAX_REINTENTOS = 3
 ESPERA_ENTRE_REINTENTOS_SEG = 3
+ESPERA_RATE_LIMIT_SEG = 8
 
 from dataset import (
     estadisticas_jugador,
@@ -113,13 +115,17 @@ def _ejecutar_tool(nombre: str, args: Dict[str, Any]) -> Any:
 
 
 def _generar_con_reintentos(client: genai.Client, contents: List[types.Content], config: types.GenerateContentConfig):
-    for intento in range(MAX_REINTENTOS_503):
+    for intento in range(MAX_REINTENTOS):
         try:
             return client.models.generate_content(model=MODEL, contents=contents, config=config)
         except errors.ServerError:
-            if intento == MAX_REINTENTOS_503 - 1:
+            if intento == MAX_REINTENTOS - 1:
                 raise
             time.sleep(ESPERA_ENTRE_REINTENTOS_SEG)
+        except errors.ClientError as e:
+            if e.code != 429 or intento == MAX_REINTENTOS - 1:
+                raise
+            time.sleep(ESPERA_RATE_LIMIT_SEG)
 
 
 def responder_pregunta_dataset(
