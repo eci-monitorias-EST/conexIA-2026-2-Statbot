@@ -12,20 +12,25 @@ import streamlit as st
 
 from agent import answer_stats_langgraph
 from formatting import format_chi2, format_resumen, format_t_test
+from llm_agent import get_default_api_key, responder_pregunta_dataset
 from plots import plot_chi2_barras, plot_histograma, plot_t_distribution
 from tools import chi_cuadrado_bondad, resumen_descriptivo, t_test_una_muestra
 
 LOGO_PATH = os.path.join("assets", "logo.png")
 
 TOOL_LABELS = {
-    "resumen": "🧮 Resumen descriptivo",
-    "t_test": "🧮 Prueba t de una muestra",
-    "chi2": "🧮 Prueba chi-cuadrado",
-    "definicion": "📖 Definición",
-    None: "📚 Contexto teórico",
+    "resumen": "Resumen descriptivo",
+    "t_test": "Prueba t de una muestra",
+    "chi2": "Prueba chi-cuadrado",
+    "definicion": "Definición",
+    None: "Contexto teórico",
 }
 
-st.set_page_config(page_title="STATBOT", page_icon="📊", layout="wide")
+st.set_page_config(
+    page_title="STATBOT",
+    page_icon=LOGO_PATH if os.path.exists(LOGO_PATH) else None,
+    layout="wide",
+)
 
 st.markdown(
     """
@@ -102,11 +107,23 @@ with st.sidebar:
         "Tip para el chat: incluye los datos entre corchetes, ej. "
         "`[10, 12, 9, 11, 13, 8]`, y palabras clave como *prueba t* o *chi cuadrado*."
     )
+    st.divider()
+    st.caption(
+        "La pestaña LLM · Mundial 2026 necesita una API key gratuita de Google "
+        "AI Studio. Puedes definirla como variable de entorno `GOOGLE_API_KEY`, en "
+        "`.streamlit/secrets.toml`, o pegarla en esa misma pestaña."
+    )
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "thread_id" not in st.session_state:
     st.session_state.thread_id = str(uuid.uuid4())
+if "llm_messages" not in st.session_state:
+    st.session_state.llm_messages = []
+if "llm_display" not in st.session_state:
+    st.session_state.llm_display = []
+if "llm_api_key" not in st.session_state:
+    st.session_state.llm_api_key = ""
 
 
 def render_tool_plot(tool_type, tool_result, key_suffix):
@@ -129,7 +146,7 @@ def render_tool_plot(tool_type, tool_result, key_suffix):
         )
 
 
-tab_chat, tab_guiado = st.tabs(["💬 Chat", "📋 Pruebas guiadas"])
+tab_chat, tab_guiado, tab_llm = st.tabs(["Chat", "Pruebas guiadas", "LLM · Mundial 2026"])
 
 with tab_chat:
     for i, msg in enumerate(st.session_state.chat_history):
@@ -220,3 +237,48 @@ with tab_guiado:
                     )
             except ValueError:
                 st.error("No se pudieron interpretar los datos. Usa números separados por comas.")
+
+with tab_llm:
+    st.caption(
+        "Preguntas en lenguaje natural sobre los partidos del Mundial 2026 "
+        "(worldcup-full.json). Un LLM (Claude) decide qué consulta hacer sobre el "
+        "dataset real para responder, en vez de inventar cifras. Ejemplos: "
+        "\"¿quién anotó más goles?\", \"partidos de Argentina\", \"resumen del "
+        "torneo\", \"jugadores con más tarjetas\"."
+    )
+
+    api_key = st.session_state.llm_api_key or get_default_api_key()
+
+    if not api_key:
+        st.warning(
+            "No se encontró una API key de Google AI (ni en `GOOGLE_API_KEY` ni "
+            "en `.streamlit/secrets.toml`). Consíguela gratis en "
+            "[aistudio.google.com/apikey](https://aistudio.google.com/apikey) y "
+            "pégala abajo para esta sesión:"
+        )
+        api_key_input = st.text_input("Google AI (Gemini) API key", type="password", key="llm_api_key_input")
+        if api_key_input:
+            st.session_state.llm_api_key = api_key_input
+            st.rerun()
+
+    for msg in st.session_state.llm_display:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    pregunta_llm = st.chat_input("Pregunta sobre el dataset del Mundial 2026...", key="llm_chat_input")
+    if pregunta_llm:
+        st.session_state.llm_display.append({"role": "user", "content": pregunta_llm})
+        if not api_key:
+            st.session_state.llm_display.append(
+                {"role": "assistant", "content": "Falta configurar la API key de Google AI para poder responder."}
+            )
+        else:
+            with st.spinner("Consultando el dataset..."):
+                try:
+                    respuesta, st.session_state.llm_messages = responder_pregunta_dataset(
+                        pregunta_llm, api_key=api_key, historial=st.session_state.llm_messages
+                    )
+                except Exception as e:
+                    respuesta = f"Ocurrió un error al consultar el modelo: {e}"
+            st.session_state.llm_display.append({"role": "assistant", "content": respuesta})
+        st.rerun()
