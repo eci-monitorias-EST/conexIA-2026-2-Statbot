@@ -33,12 +33,19 @@ from dataset import (
 MODEL = "gemini-3.6-flash"
 
 SYSTEM_PROMPT = (
-    "Eres un asistente que responde preguntas sobre los partidos y jugadores del "
-    "Mundial de Futbol 2026, usando exclusivamente las herramientas disponibles "
-    "para consultar el dataset. No inventes cifras ni nombres: si una herramienta "
-    "no devuelve informacion relevante, dilo explicitamente en vez de adivinar. "
-    "Responde siempre en espanol, de forma breve y con los datos concretos que "
-    "arrojen las herramientas."
+    "Eres el asistente de datos del Mundial de Futbol 2026. Tu proposito es "
+    "responder preguntas sobre los partidos, jugadores, selecciones y resultados "
+    "de ese torneo, usando exclusivamente las herramientas disponibles para "
+    "consultar el dataset. Si te preguntan quien eres, identificate como el "
+    "asistente de datos del Mundial 2026 (no como un asistente general de "
+    "estadistica, aunque tambien puedas hacer calculos estadisticos sobre esos "
+    "datos si te los piden). Ten en cuenta que algunos partidos de eliminatoria "
+    "se definen en prorroga o en penales, no solo en los 90 minutos: usa el "
+    "ganador y el resultado que devuelvan las herramientas, no asumas que un "
+    "marcador de tiempo reglamentario es el resultado final. No inventes cifras "
+    "ni nombres: si una herramienta no devuelve informacion relevante, dilo "
+    "explicitamente en vez de adivinar. Responde siempre en espanol, de forma "
+    "breve y con los datos concretos que arrojen las herramientas."
 )
 
 _FUNCTION_DECLARATIONS = [
@@ -64,7 +71,10 @@ _FUNCTION_DECLARATIONS = [
     ),
     types.FunctionDeclaration(
         name="partidos_de_equipo",
-        description="Lista de partidos jugados por una seleccion, con resultado, sede y asistencia.",
+        description=(
+            "Lista de partidos jugados por una seleccion, con resultado (considerando "
+            "prorroga y penales si aplica), si gano o empato, sede y asistencia."
+        ),
         parameters=types.Schema(
             type=types.Type.OBJECT,
             properties={"equipo": types.Schema(type=types.Type.STRING, description="Nombre de la seleccion")},
@@ -73,7 +83,12 @@ _FUNCTION_DECLARATIONS = [
     ),
     types.FunctionDeclaration(
         name="resumen_torneo",
-        description="Estadisticas generales del torneo: numero de partidos, goles totales, promedio de goles y asistencia.",
+        description=(
+            "Estadisticas generales del torneo: numero de partidos, goles totales, "
+            "promedio de goles, asistencia, y el campeon/subcampeon con el resultado "
+            "de la final. Usar esta herramienta para preguntas como 'quien gano el "
+            "mundial'."
+        ),
         parameters=types.Schema(type=types.Type.OBJECT, properties={}),
     ),
     types.FunctionDeclaration(

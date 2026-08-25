@@ -20,6 +20,35 @@ TORNEO_NOMBRE: str = _data["name"]
 PARTIDOS: List[Dict[str, Any]] = _data["matches"]
 
 
+def _resultado_partido(p: Dict[str, Any]) -> Dict[str, Any]:
+    """Marcador y ganador reales de un partido, considerando prórroga y penales.
+
+    `score.ft` solo trae el resultado de los 90 minutos: en partidos de
+    eliminatoria que se definen en prórroga (`score.et`) o penales
+    (`score.p`) hay que mirar esas claves o el partido se ve como empate.
+    """
+    score = p["score"]
+    goles = score.get("et", score["ft"])
+    penales = score.get("p")
+    if penales:
+        decidido_en = "penales"
+        ganador = p["team1"] if penales[0] > penales[1] else p["team2"]
+    elif "et" in score:
+        decidido_en = "prorroga"
+        ganador = p["team1"] if goles[0] > goles[1] else (p["team2"] if goles[1] > goles[0] else None)
+    else:
+        decidido_en = "tiempo reglamentario"
+        ganador = p["team1"] if goles[0] > goles[1] else (p["team2"] if goles[1] > goles[0] else None)
+    return {
+        "goles1": goles[0],
+        "goles2": goles[1],
+        "penales1": penales[0] if penales else None,
+        "penales2": penales[1] if penales else None,
+        "ganador": ganador,
+        "decidido_en": decidido_en,
+    }
+
+
 def top_goleadores(n: int = 10, equipo: Optional[str] = None) -> List[Dict[str, Any]]:
     """Ranking de jugadores por goles anotados en el torneo, opcionalmente filtrado por selección."""
     n = int(n)
@@ -128,7 +157,7 @@ def estadisticas_jugador(nombre: str) -> Dict[str, Any]:
 
 
 def partidos_de_equipo(equipo: str) -> List[Dict[str, Any]]:
-    """Lista de partidos jugados por una selección, con resultado, sede y asistencia."""
+    """Lista de partidos jugados por una selección, con resultado, ganador, sede y asistencia."""
     equipo_low = equipo.lower()
     resultado = []
     for p in PARTIDOS:
@@ -136,15 +165,24 @@ def partidos_de_equipo(equipo: str) -> List[Dict[str, Any]]:
         es_visita = equipo_low in p["team2"].lower()
         if not (es_local or es_visita):
             continue
+        equipo_nombre = p["team1"] if es_local else p["team2"]
         rival = p["team2"] if es_local else p["team1"]
-        marcador = p["score"]["ft"]
-        goles_propios = marcador[0] if es_local else marcador[1]
-        goles_rival = marcador[1] if es_local else marcador[0]
+        r = _resultado_partido(p)
+        goles_propios = r["goles1"] if es_local else r["goles2"]
+        goles_rival = r["goles2"] if es_local else r["goles1"]
+        resultado_texto = f"{goles_propios}-{goles_rival}"
+        if r["decidido_en"] == "penales":
+            pen_propios = r["penales1"] if es_local else r["penales2"]
+            pen_rival = r["penales2"] if es_local else r["penales1"]
+            resultado_texto += f" (penales {pen_propios}-{pen_rival})"
         resultado.append({
             "ronda": p["round"],
             "fecha": p["date"],
             "rival": rival,
-            "resultado": f"{goles_propios}-{goles_rival}",
+            "resultado": resultado_texto,
+            "gano": r["ganador"] == equipo_nombre,
+            "empato": r["ganador"] is None,
+            "decidido_en": r["decidido_en"],
             "sede": p["ground"],
             "asistencia": p.get("attendance"),
         })
@@ -157,6 +195,19 @@ def resumen_torneo() -> Dict[str, Any]:
     total_goles = sum(len(p.get("goals1", [])) + len(p.get("goals2", [])) for p in PARTIDOS)
     asistencias = [p["attendance"] for p in PARTIDOS if p.get("attendance")]
     partido_mas_asistido = max(PARTIDOS, key=lambda p: p.get("attendance", 0))
+
+    final = next((p for p in PARTIDOS if p["round"] == "Final"), None)
+    campeon = subcampeon = resultado_final = None
+    if final:
+        r = _resultado_partido(final)
+        campeon = r["ganador"]
+        subcampeon = final["team2"] if campeon == final["team1"] else final["team1"]
+        resultado_final = f"{final['team1']} {r['goles1']}-{r['goles2']} {final['team2']}"
+        if r["decidido_en"] == "penales":
+            resultado_final += f" (penales {r['penales1']}-{r['penales2']})"
+        elif r["decidido_en"] == "prorroga":
+            resultado_final += " (en prorroga)"
+
     return {
         "torneo": TORNEO_NOMBRE,
         "total_partidos": total_partidos,
@@ -168,4 +219,7 @@ def resumen_torneo() -> Dict[str, Any]:
             f"{partido_mas_asistido['team1']} vs {partido_mas_asistido['team2']} "
             f"({partido_mas_asistido['ground']})"
         ),
+        "campeon": campeon,
+        "subcampeon": subcampeon,
+        "resultado_final": resultado_final,
     }
