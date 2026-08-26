@@ -111,13 +111,36 @@ DEFINICIONES: Dict[str, str] = {
         "datos dividida entre el número de observaciones. Es la medida de tendencia "
         "central más usada, pero es sensible a valores atípicos (outliers)."
     ),
+    # Alias porque en lenguaje coloquial "promedio" es el término más usado
+    # para referirse a la media, y muchas preguntas no dicen "media" nunca.
+    "promedio": (
+        "La **media** (o promedio) es la suma de todos los valores de un conjunto de "
+        "datos dividida entre el número de observaciones. Es la medida de tendencia "
+        "central más usada, pero es sensible a valores atípicos (outliers)."
+    ),
     "mediana": (
         "La **mediana** es el valor que ocupa la posición central de un conjunto de "
         "datos ordenados de menor a mayor. Si el número de datos es par, la mediana "
         "es el promedio de los dos valores centrales. A diferencia de la media, no se "
         "ve afectada por valores atípicos."
     ),
+    "punto medio": (
+        "La **mediana** es el valor que ocupa la posición central de un conjunto de "
+        "datos ordenados de menor a mayor. Si el número de datos es par, la mediana "
+        "es el promedio de los dos valores centrales. A diferencia de la media, no se "
+        "ve afectada por valores atípicos."
+    ),
     "moda": (
+        "La **moda** es el valor (o valores) que se repite con mayor frecuencia en un "
+        "conjunto de datos. Un conjunto puede no tener moda, tener una sola (unimodal) "
+        "o varias (multimodal)."
+    ),
+    "valor mas repetido": (
+        "La **moda** es el valor (o valores) que se repite con mayor frecuencia en un "
+        "conjunto de datos. Un conjunto puede no tener moda, tener una sola (unimodal) "
+        "o varias (multimodal)."
+    ),
+    "valor mas frecuente": (
         "La **moda** es el valor (o valores) que se repite con mayor frecuencia en un "
         "conjunto de datos. Un conjunto puede no tener moda, tener una sola (unimodal) "
         "o varias (multimodal)."
@@ -170,6 +193,11 @@ DEFINICIONES: Dict[str, str] = {
         "media) es un rango de valores que, con cierto nivel de confianza (p.ej. 95%), "
         "se espera que contenga al verdadero valor del parámetro."
     ),
+    "margen de error": (
+        "Un **intervalo de confianza** para un parámetro poblacional (por ejemplo la "
+        "media) es un rango de valores que, con cierto nivel de confianza (p.ej. 95%), "
+        "se espera que contenga al verdadero valor del parámetro."
+    ),
     "variable aleatoria": (
         "Una **variable aleatoria** es discreta si toma valores numerables (por "
         "ejemplo, conteos) y continua si puede tomar cualquier valor dentro de un "
@@ -202,6 +230,18 @@ DEFINICIONES: Dict[str, str] = {
         "normalidad o los datos son ordinales."
     ),
     "distribucion normal": (
+        "La **distribución normal** (o gaussiana) es una distribución de probabilidad "
+        "continua, simétrica y con forma de campana, caracterizada por su media y su "
+        "desviación estándar. Muchos métodos estadísticos clásicos asumen normalidad "
+        "en los datos."
+    ),
+    "campana de gauss": (
+        "La **distribución normal** (o gaussiana) es una distribución de probabilidad "
+        "continua, simétrica y con forma de campana, caracterizada por su media y su "
+        "desviación estándar. Muchos métodos estadísticos clásicos asumen normalidad "
+        "en los datos."
+    ),
+    "curva de campana": (
         "La **distribución normal** (o gaussiana) es una distribución de probabilidad "
         "continua, simétrica y con forma de campana, caracterizada por su media y su "
         "desviación estándar. Muchos métodos estadísticos clásicos asumen normalidad "
